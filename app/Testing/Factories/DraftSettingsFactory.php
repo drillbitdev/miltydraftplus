@@ -31,6 +31,7 @@ class DraftSettingsFactory
 
         $allianceMode = $properties['allianceMode'] ?? false;
         $minorFactions = $properties['minorFactions'] ?? false;
+        $minorFactionsMode = $minorFactions ? $properties['minorFactionsMode'] ?? MinorFactionsMode::DRAFT : null;
 
         return new Settings(
             $names,
@@ -64,7 +65,8 @@ class DraftSettingsFactory
             $allianceMode ? $properties['allianceTeamPosition'] ?? AllianceTeamPosition::OPPOSITES : null,
             $allianceMode ? $properties['allianceForceDoublePicks'] ?? false : null,
             $minorFactions,
-            $minorFactions ? $properties['minorFactionsMode'] ?? MinorFactionsMode::DRAFT : null,
+            $minorFactionsMode,
+            $minorFactionsMode == MinorFactionsMode::DRAFT ? $properties['numberOfMinorFactions'] ?? $numberOfPlayers + 2 : null,
         );
     }
 }

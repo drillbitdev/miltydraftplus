@@ -62,6 +62,7 @@ class SettingsTest extends TestCase
             true,
             true,
             MinorFactionsMode::RANDOM,
+            7,
         );
 
         $array = $draftSettings->toArray();
@@ -101,6 +102,7 @@ class SettingsTest extends TestCase
         $this->assertSame('neighbors', $array['alliance']['alliance_teams_position']);
         $this->assertSame(true, $array['alliance']['force_double_picks']);
         $this->assertSame('random', $array['minor_factions']['mode']);
+        $this->assertSame(7, $array['minor_factions']['num_minor_factions']);
     }
 
     #[Test]
@@ -116,13 +118,53 @@ class SettingsTest extends TestCase
     {
         $settings = DraftSettingsFactory::make([
             'minorFactions' => true,
-            'minorFactionsMode' => MinorFactionsMode::RANDOM,
+            'minorFactionsMode' => MinorFactionsMode::DRAFT,
+            'numberOfMinorFactions' => 8,
         ]);
 
         $restored = Settings::fromJson($settings->toArray());
 
         $this->assertTrue($restored->minorFactions);
-        $this->assertSame(MinorFactionsMode::RANDOM, $restored->minorFactionsMode);
+        $this->assertSame(MinorFactionsMode::DRAFT, $restored->minorFactionsMode);
+        $this->assertSame(8, $restored->numberOfMinorFactions);
+    }
+
+    #[Test]
+    public function itValidatesMinorFactionCount(): void
+    {
+        $draft = DraftSettingsFactory::make([
+            'numberOfPlayers' => 4,
+            'minorFactions' => true,
+            'numberOfMinorFactions' => 3,
+        ]);
+
+        $this->expectException(InvalidDraftSettingsException::class);
+        $this->expectExceptionMessage(InvalidDraftSettingsException::notEnoughMinorFactionsForPlayers()->getMessage());
+        $draft->validate();
+    }
+
+    #[Test]
+    public function itIgnoresMinorFactionCountWhenRandomlyAssigned(): void
+    {
+        $draft = DraftSettingsFactory::make([
+            'numberOfPlayers' => 4,
+            'minorFactions' => true,
+            'minorFactionsMode' => MinorFactionsMode::RANDOM,
+        ]);
+
+        $this->assertNull($draft->numberOfMinorFactions);
+        $this->assertTrue($draft->validate());
+    }
+
+    #[Test]
+    public function itIgnoresMinorFactionCountWhenDisabled(): void
+    {
+        $draft = DraftSettingsFactory::make([
+            'numberOfPlayers' => 4,
+            'minorFactions' => false,
+        ]);
+
+        $this->assertTrue($draft->validate());
     }
 
     public static function validationCases()
@@ -375,9 +417,11 @@ class SettingsTest extends TestCase
         if (($data['config']['minor_factions'] ?? null) != null) {
             $this->assertTrue($draftSettings->minorFactions);
             $this->assertSame($data['config']['minor_factions']['mode'], $draftSettings->minorFactionsMode->value);
+            $this->assertSame($data['config']['minor_factions']['num_minor_factions'], $draftSettings->numberOfMinorFactions);
         } else {
             $this->assertFalse($draftSettings->minorFactions);
             $this->assertNull($draftSettings->minorFactionsMode);
+            $this->assertNull($draftSettings->numberOfMinorFactions);
         }
     }
 }

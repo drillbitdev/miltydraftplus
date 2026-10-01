@@ -200,6 +200,15 @@
                                     <input type="radio" name="minor_factions_mode" value="random" />
                                     Randomly assign minor factions
                                 </label>
+                                <div class="input minor_factions_draft_only">
+                                    <label for="num_minor_factions">
+                                        Number of Minor Factions
+                                    </label>
+                                    <input type="number" id="num_minor_factions" name="num_minor_factions" value="9" min="3" />
+                                    <span class="help">
+                                        How many minor factions are available. Must be at least the number of players.
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>

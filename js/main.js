@@ -115,6 +115,7 @@ $(document).ready(function () {
     init_player_count();
 
     $("#minor_factions_toggle").on('change', update_minor_factions);
+    $("input[name='minor_factions_mode']").on('change', update_minor_factions);
     update_minor_factions();
 });
 
@@ -236,6 +237,10 @@ function update_minor_factions() {
     const enabled = $('#minor_factions_toggle').is(':checked');
     $(".minor_factions_only input").prop("disabled", !enabled);
     $(".minor_factions_only").toggle(enabled);
+
+    const drafting = enabled && $('input[name="minor_factions_mode"]:checked').val() == 'draft';
+    $(".minor_factions_draft_only input").prop("disabled", !drafting);
+    $(".minor_factions_draft_only").toggle(drafting);
 }
 
 function update_alliance_teams() {

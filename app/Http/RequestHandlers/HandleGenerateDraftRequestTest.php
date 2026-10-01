@@ -275,6 +275,25 @@ class HandleGenerateDraftRequestTest extends RequestHandlerTestCase
             'expected' => MinorFactionsMode::RANDOM,
             'expectedWhenNotSet' => null,
         ];
+        yield 'Number of Minor Factions' => [
+            'postData' => [
+                'minor_factions_on' => '1',
+                'minor_factions_mode' => 'draft',
+                'num_minor_factions' => '8',
+            ],
+            'field' => 'numberOfMinorFactions',
+            'expected' => 8,
+            'expectedWhenNotSet' => null,
+        ];
+        yield 'Number of Minor Factions when randomly assigned' => [
+            'postData' => [
+                'minor_factions_on' => '1',
+                'minor_factions_mode' => 'random',
+            ],
+            'field' => 'numberOfMinorFactions',
+            'expected' => null,
+            'expectedWhenNotSet' => null,
+        ];
     }
 
     #[Test]

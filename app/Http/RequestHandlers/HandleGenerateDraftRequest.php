@@ -55,6 +55,7 @@ class HandleGenerateDraftRequest extends RequestHandler
 
         $allianceMode = (bool) $this->request->get('alliance_on', false);
         $minorFactions = (bool) $this->request->get('minor_factions_on', false);
+        $minorFactionsMode = $minorFactions ? MinorFactionsMode::from($this->request->get('minor_factions_mode')) : null;
 
         $customSlices = [];
         if ($this->request->get('custom_slices', '') != '') {
@@ -94,7 +95,9 @@ class HandleGenerateDraftRequest extends RequestHandler
             $allianceMode ? AllianceTeamPosition::from($this->request->get('alliance_teams_position')) : null,
             $allianceMode ? $this->request->get('force_double_picks') == 'true' : null,
             $minorFactions,
-            $minorFactions ? MinorFactionsMode::from($this->request->get('minor_factions_mode')) : null,
+            $minorFactionsMode,
+            // only relevant when drafting; random assignment just gives each player one
+            $minorFactionsMode == MinorFactionsMode::DRAFT ? (int) $this->request->get('num_minor_factions') : null,
         );
     }
 

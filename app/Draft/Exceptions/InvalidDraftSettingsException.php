@@ -34,6 +34,11 @@ class InvalidDraftSettingsException extends \Exception
         return new self('Cannot have less factions than players');
     }
 
+    public static function notEnoughMinorFactionsForPlayers(): self
+    {
+        return new self('Cannot have less minor factions than players');
+    }
+
     public static function unknownTileInCustomSlice($id): self
     {
         return new self('Custom slices contain unknown tile number:' . $id);
