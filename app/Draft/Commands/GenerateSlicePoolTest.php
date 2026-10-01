@@ -115,6 +115,81 @@ class GenerateSlicePoolTest extends TestCase
     }
 
     #[Test]
+    #[DataProviderExternal(TestSets::class, 'setCombinations')]
+    public function itGeneratesHighLowAndMidMidSlicesForMinorFactions($sets): void
+    {
+        $settings = DraftSettingsFactory::make([
+            'numberOfSlices' => 4,
+            'tileSets' => $sets,
+            'maxOneWormholePerSlice' => false,
+            'minimumLegendaryPlanets' => 0,
+            'minimumTwoAlphaBetaWormholes' => false,
+            'minorFactions' => true,
+            'minimumOptimalInfluence' => 2.5,
+            'minimumOptimalResources' => 2,
+            'minimumOptimalTotal' => 6,
+            'maximumOptimalTotal' => 10,
+        ]);
+        $generator = new GenerateSlicePool($settings);
+        $tiers = $generator->gatheredTileTiers();
+        $tierOf = fn (Tile $t) => match(true) {
+            in_array($t->id, $tiers->highTier) => 'high',
+            in_array($t->id, $tiers->midTier) => 'mid',
+            in_array($t->id, $tiers->lowTier) => 'low',
+            in_array($t->id, $tiers->redTier) => 'red',
+        };
+
+        $slices = $generator->handle();
+
+        $this->assertCount(4, $slices);
+        $kinds = [];
+        foreach($slices as $slice) {
+            $this->assertCount(4, $slice->tiles);
+            $this->assertTrue($slice->hasMinorFactionSlot());
+
+            $sliceTiers = array_map($tierOf, $slice->tiles);
+            sort($sliceTiers);
+            $this->assertContains($sliceTiers, [['high', 'low', 'red', 'red'], ['mid', 'mid', 'red', 'red']]);
+            $kinds[] = $sliceTiers[0];
+
+            $this->assertTrue($slice->validate(
+                $settings->minimumOptimalInfluence,
+                $settings->minimumOptimalResources,
+                $settings->minimumOptimalTotal,
+                $settings->maximumOptimalTotal,
+                $settings->maxOneWormholesPerSlice,
+            ));
+        }
+
+        // even number of slices is split evenly between the two kinds
+        $this->assertSame(2, count(array_keys($kinds, 'high')));
+        $this->assertSame(2, count(array_keys($kinds, 'mid')));
+    }
+
+    #[Test]
+    public function itGeneratesTheSameMinorFactionSlicesFromSameSeed(): void
+    {
+        $settings = DraftSettingsFactory::make([
+            'seed' => 123,
+            'numberOfSlices' => 7,
+            'tileSets' => [Edition::BASE_GAME, Edition::PROPHECY_OF_KINGS],
+            'maxOneWormholePerSlice' => false,
+            'minimumLegendaryPlanets' => 0,
+            'minimumTwoAlphaBetaWormholes' => false,
+            'minorFactions' => true,
+            'minimumOptimalInfluence' => 2.5,
+            'minimumOptimalResources' => 2,
+            'minimumOptimalTotal' => 6,
+            'maximumOptimalTotal' => 10,
+        ]);
+
+        $first = array_map(fn (Slice $s) => $s->tileIds(), (new GenerateSlicePool($settings))->handle());
+        $second = array_map(fn (Slice $s) => $s->tileIds(), (new GenerateSlicePool($settings))->handle());
+
+        $this->assertSame($first, $second);
+    }
+
+    #[Test]
     public function itGeneratesTheSameSlicesFromSameSeed(): void
     {
         $settings = DraftSettingsFactory::make([

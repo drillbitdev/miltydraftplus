@@ -103,6 +103,73 @@ class SliceTest extends TestCase
         $this->assertSame($canBeArranged, $slice->tileArrangementIsValid());
     }
 
+    public static function minorFactionTileConfigurations(): iterable
+    {
+        // slots 0, 2 and 4 don't neighbour each other, so 3 anomalies still fit
+        yield 'When it has 3 anomalies' => [
+            'tiles' => [
+                TileFactory::make([], [], 'nebula'),
+                TileFactory::make([], [], 'asteroid field'),
+                TileFactory::make([], [], 'gravity-rift'),
+                TileFactory::make([], [], null),
+            ],
+            'canBeArranged' => true,
+        ];
+        yield 'When it has only anomalies' => [
+            'tiles' => [
+                TileFactory::make([], [], 'nebula'),
+                TileFactory::make([], [], 'asteroid field'),
+                TileFactory::make([], [], 'gravity-rift'),
+                TileFactory::make([], [], 'supernova'),
+            ],
+            'canBeArranged' => false,
+        ];
+    }
+
+    #[DataProvider('minorFactionTileConfigurations')]
+    #[Test]
+    public function itCanArrangeTilesAroundTheMinorFactionSlot(array $tiles, bool $canBeArranged): void
+    {
+        $slice = new Slice($tiles);
+
+        $arranged = $slice->arrange(new Seed(1));
+
+        $this->assertSame($canBeArranged, $arranged);
+        $this->assertSame($canBeArranged, $slice->tileArrangementIsValid());
+    }
+
+    #[Test]
+    public function itKeysTilesBySlot(): void
+    {
+        $tiles = [TileFactory::make(), TileFactory::make(), TileFactory::make(), TileFactory::make(), TileFactory::make()];
+
+        $slice = new Slice($tiles);
+
+        $this->assertFalse($slice->hasMinorFactionSlot());
+        $this->assertSame([0, 1, 2, 3, 4], array_keys($slice->tilesBySlot()));
+    }
+
+    #[Test]
+    public function itLeavesTheMinorFactionSlotEmptyForFourTileSlices(): void
+    {
+        $tiles = [TileFactory::make(), TileFactory::make(), TileFactory::make(), TileFactory::make()];
+
+        $slice = new Slice($tiles);
+
+        $this->assertTrue($slice->hasMinorFactionSlot());
+        $this->assertSame([0, 1, 2, 4], array_keys($slice->tilesBySlot()));
+        $this->assertArrayNotHasKey(Slice::MINOR_FACTION_SLOT, $slice->tilesBySlot());
+        $this->assertSame($tiles[3], $slice->tilesBySlot()[4]);
+    }
+
+    #[Test]
+    public function itRejectsSlicesWithTheWrongNumberOfTiles(): void
+    {
+        $this->expectException(\Exception::class);
+
+        new Slice([TileFactory::make(), TileFactory::make(), TileFactory::make()]);
+    }
+
     #[Test]
     public function itWontAllowSlicesWithTooManyWormholes(): void
     {

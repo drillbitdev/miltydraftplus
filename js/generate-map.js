@@ -348,6 +348,9 @@ const MAPS = {
     8: MAP_8,
 }
 
+// see Slice::MINOR_FACTION_SLOT
+const MINOR_FACTION_SLOT = 3;
+
 window.map_cached = false;
 let all_tiles = [];
 
@@ -457,8 +460,16 @@ function lookup(player_index, tile_index) {
                 return [tile, p.name];
             }
             else if(p.slice != null) {
+                let tiles = draft.slices[p.slice].tiles;
+
+                // minor faction slices have 4 tiles, the minor faction home system sits in slot 3
+                if(tiles.length == 4) {
+                    if(tile_index == MINOR_FACTION_SLOT) return ["0", "Minor faction"];
+                    if(tile_index > MINOR_FACTION_SLOT) tile_index--;
+                }
+
                 // huzzah!
-                return [draft.slices[p.slice].tiles[tile_index], p.name];
+                return [tiles[tile_index], p.name];
             }
         }
     }
@@ -495,6 +506,8 @@ function draw_tile(tile) {
 
             if(chunks[1] == "H") {
                 if(tilename == "EMPTY") tilename = "0";
+                label = result[1];
+            } else if(chunks[1] == MINOR_FACTION_SLOT && tilename == "0") {
                 label = result[1];
             }
         }

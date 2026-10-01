@@ -166,7 +166,15 @@ class Settings
         $redTiles = array_reduce($this->tileSets, fn ($sum, Edition $e) => $sum + $e->redTileCount(), 0);
         $legendaryPlanets = array_reduce($this->tileSets, fn ($sum, Edition $e) => $sum + $e->legendaryPlanetCount(), 0);
 
-        $maxSlices = min(floor($blueTiles / 3), floor($redTiles / 2));
+        if ($this->minorFactions) {
+            // slices get either a high and a low tier tile, or two mid tier tiles
+            $highTiles = array_reduce($this->tileSets, fn ($sum, Edition $e) => $sum + $e->highTierTileCount(), 0);
+            $midTiles = array_reduce($this->tileSets, fn ($sum, Edition $e) => $sum + $e->midTierTileCount(), 0);
+            $lowTiles = array_reduce($this->tileSets, fn ($sum, Edition $e) => $sum + $e->lowTierTileCount(), 0);
+            $maxSlices = min(min($highTiles, $lowTiles) + floor($midTiles / 2), floor($redTiles / 2));
+        } else {
+            $maxSlices = min(floor($blueTiles / 3), floor($redTiles / 2));
+        }
 
         // @todo don't hardcode this in, but use the tile-selection
         if ($this->numberOfSlices > 5 && $this->tileSets == [Edition::BASE_GAME]) {
@@ -213,9 +221,11 @@ class Settings
             if (count($this->customSlices) < count($this->playerNames)) {
                 throw InvalidDraftSettingsException::notEnoughCustomSlices();
             }
+            // with minor factions, the minor faction home system takes one spot in each slice
+            $tilesPerSlice = $this->minorFactions ? 4 : 5;
             foreach ($this->customSlices as $s) {
-                if (count($s) != 5) {
-                    throw InvalidDraftSettingsException::invalidCustomSlices();
+                if (count($s) != $tilesPerSlice) {
+                    throw InvalidDraftSettingsException::invalidCustomSlices($tilesPerSlice);
                 }
             }
         }

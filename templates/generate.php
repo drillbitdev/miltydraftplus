@@ -184,6 +184,11 @@
                             <h3>Minor Factions Event</h3>
                             <p class="help">
                                 Each player also receives a minor faction alongside their main faction.
+                                The minor faction's home system takes one blue tile spot in each slice, so slices have 4 tiles instead of 5:
+                                either a high and a low tier system, or two mid tier systems, plus two red tiles.
+                            </p>
+                            <p class="help">
+                                Turning this on lowers the slice generation defaults (Optimal Influence 2.5, Resources 2, Total 6 to 10) to match the smaller slices. Values you've changed yourself are left alone.
                             </p>
                         </div>
                         <div class="content">
@@ -425,7 +430,8 @@
                                 <span class="help">
                                         You can skip the slice-generation stuff by inputting your own slices. You can do this by listing the tiles in each slice, one per line, seperated by commas.<br />
                                         Note: The order within each line matters! Slices are laid out like this:<br /><br />
-                                        <img class="slice-help" src="<?= url('img/slice-layout.png') ?>" /><br /> so the first slice listed will be to positioned top left of the home system, the second one top, third top right,...
+                                        <img class="slice-help" src="<?= url('img/slice-layout.png') ?>" /><br /> so the first slice listed will be to positioned top left of the home system, the second one top, third top right,...<br />
+                                        With the Minor Factions event, list 4 tiles per slice. They fill positions 1, 2, 3 and 5: position 4 is reserved for the minor faction home system.
                                     </span>
                             </div>
 

@@ -75,8 +75,8 @@ class InvalidDraftSettingsException extends \Exception
         return new self('Not enough custom slices for player count');
     }
 
-    public static function invalidCustomSlices(): self {
-        return new self("Custom slices error, either the formatting is incorrect or slices don't have enough tiles (each should have 5)");
+    public static function invalidCustomSlices(int $tilesPerSlice = 5): self {
+        return new self(sprintf("Custom slices error, either the formatting is incorrect or slices don't have enough tiles (each should have %d)", $tilesPerSlice));
     }
 
     public static function cannotGenerateSlices(): self {

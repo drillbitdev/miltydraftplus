@@ -256,6 +256,33 @@ class SettingsTest extends TestCase
     }
 
     #[Test]
+    public function itLimitsSlicesByTiersWithMinorFactions(): void {
+        // base + DS+: min(14 high, 8 low) high+low slices + floor(14 mid / 2) mid+mid slices = 15, but only 20 red tiles
+        $draft = DraftSettingsFactory::make([
+            'numberOfSlices' => 11,
+            'tileSets' => [Edition::BASE_GAME, Edition::DISCORDANT_STARS_PLUS],
+            'minorFactions' => true,
+        ]);
+
+        $this->expectException(InvalidDraftSettingsException::class);
+        $this->expectExceptionMessage(InvalidDraftSettingsException::notEnoughTilesForSlices(10)->getMessage());
+        $draft->validate();
+    }
+
+    #[Test]
+    public function itKeepsTheBaseGameSliceLimitWithMinorFactions(): void {
+        $draft = DraftSettingsFactory::make([
+            'numberOfSlices' => 6,
+            'tileSets' => [Edition::BASE_GAME],
+            'minorFactions' => true,
+        ]);
+
+        $this->expectException(InvalidDraftSettingsException::class);
+        $this->expectExceptionMessage(InvalidDraftSettingsException::notEnoughTilesForSlices(5)->getMessage());
+        $draft->validate();
+    }
+
+    #[Test]
     public function itValidatesOptimalMaximum(): void {
         $draft = DraftSettingsFactory::make([
             'minimumOptimalTotal' => 7,
@@ -366,6 +393,38 @@ class SettingsTest extends TestCase
         $this->expectException(InvalidDraftSettingsException::class);
         $this->expectExceptionMessage(InvalidDraftSettingsException::notEnoughCustomSlices()->getMessage());
 
+        $draft->validate();
+    }
+
+    #[Test]
+    public function itAcceptsFourTileCustomSlicesWithMinorFactions(): void {
+        $draft = DraftSettingsFactory::make([
+            'numberOfPlayers' => 3,
+            'minorFactions' => true,
+            'customSlices' => [
+                [19, 20, 39, 40],
+                [21, 22, 41, 42],
+                [23, 24, 43, 44],
+            ],
+        ]);
+
+        $this->assertTrue($draft->validate());
+    }
+
+    #[Test]
+    public function itRejectsFiveTileCustomSlicesWithMinorFactions(): void {
+        $draft = DraftSettingsFactory::make([
+            'numberOfPlayers' => 3,
+            'minorFactions' => true,
+            'customSlices' => [
+                [19, 20, 39, 40, 25],
+                [21, 22, 41, 42, 26],
+                [23, 24, 43, 44, 27],
+            ],
+        ]);
+
+        $this->expectException(InvalidDraftSettingsException::class);
+        $this->expectExceptionMessage(InvalidDraftSettingsException::invalidCustomSlices(4)->getMessage());
         $draft->validate();
     }
 

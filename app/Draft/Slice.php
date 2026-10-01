@@ -13,6 +13,15 @@ class Slice
     protected const MAX_ARRANGEMENT_TRIES = 100;
 
     /**
+     * The Minor Factions event places a minor faction home system in the second ring,
+     * equidistant between home systems, which is position #3 of a slice (see tileArrangementIsValid).
+     * Those slices only have 4 tiles, which fill the remaining positions.
+     */
+    public const MINOR_FACTION_SLOT = 3;
+    public const SLOTS = [0, 1, 2, 3, 4];
+    public const MINOR_FACTION_SLOTS = [0, 1, 2, 4];
+
+    /**
      * @var array<Wormhole>
      */
     public array $wormholes = [];
@@ -36,8 +45,8 @@ class Slice
     function __construct(
         public array $tiles,
     ) {
-        // if the slice doesn't have 5 tiles in it, something went awry
-        if (count($this->tiles) != 5) {
+        // if the slice doesn't have 5 tiles in it (4 with minor factions), something went awry
+        if (count($this->tiles) != 5 && count($this->tiles) != 4) {
             throw new \Exception('Slice does not have enough tiles');
         }
 
@@ -161,18 +170,39 @@ class Slice
     {
 
         $neighbours = [[0, 1], [0, 3], [1, 2], [1, 3], [1, 4], [3, 4]];
+        $slots = $this->tilesBySlot();
 
         foreach ($neighbours as $neighbouringPair) {
+            // the minor faction slot is empty, so it can't neighbour an anomaly
+            if (! isset($slots[$neighbouringPair[0]], $slots[$neighbouringPair[1]])) {
+                continue;
+            }
+
             // can't have two neighbouring anomalies
             if (
-                $this->tiles[$neighbouringPair[0]]->hasAnomaly() &&
-                $this->tiles[$neighbouringPair[1]]->hasAnomaly()
+                $slots[$neighbouringPair[0]]->hasAnomaly() &&
+                $slots[$neighbouringPair[1]]->hasAnomaly()
             ) {
                 return false;
             }
         }
 
         return true;
+    }
+
+    public function hasMinorFactionSlot(): bool
+    {
+        return count($this->tiles) == count(self::MINOR_FACTION_SLOTS);
+    }
+
+    /**
+     * @return array<int, Tile> tiles keyed by their position in the slice
+     */
+    public function tilesBySlot(): array
+    {
+        $slots = $this->hasMinorFactionSlot() ? self::MINOR_FACTION_SLOTS : self::SLOTS;
+
+        return array_combine($slots, $this->tiles);
     }
 
     public function tileIds(): array

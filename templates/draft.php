@@ -107,10 +107,13 @@
                                 <div class="slice option" data-slice="<?= $sliceId ?>">
                                     <div class="slice-graph">
                                         <div class="wrap">
-                                            <?php foreach ($slice->tiles as $i => $tile) : ?>
+                                            <?php foreach ($slice->tilesBySlot() as $i => $tile) : ?>
                                                 <img class="tile-<?= $i ?>" src="<?= url('img/tiles/ST_' . $tile->id . '.png') ?>" />
                                                 <img class="zoom tile-<?= $i ?>" src="<?= url('img/tiles/ST_' . $tile->id . '.png') ?>" />
                                             <?php endforeach; ?>
+                                            <?php if ($slice->hasMinorFactionSlot()) : ?>
+                                                <img class="tile-<?= \App\Draft\Slice::MINOR_FACTION_SLOT ?> minor-faction" src="<?= url('img/tiles/ST_0.png') ?>" title="Minor faction home system" />
+                                            <?php endif; ?>
                                             <img class="tile-h" src="<?= url('img/tiles/ST_0.png') ?>" />
                                         </div>
                                     </div>

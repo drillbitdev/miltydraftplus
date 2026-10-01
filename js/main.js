@@ -114,7 +114,10 @@ $(document).ready(function () {
     update_alliance_mode();
     init_player_count();
 
-    $("#minor_factions_toggle").on('change', update_minor_factions);
+    $("#minor_factions_toggle").on('change', function() {
+        update_minor_factions();
+        update_minor_factions_slice_defaults();
+    });
     $("input[name='minor_factions_mode']").on('change', update_minor_factions);
     update_minor_factions();
 });
@@ -241,6 +244,28 @@ function update_minor_factions() {
     const drafting = enabled && $('input[name="minor_factions_mode"]:checked').val() == 'draft';
     $(".minor_factions_draft_only input").prop("disabled", !drafting);
     $(".minor_factions_draft_only").toggle(drafting);
+}
+
+// Slices have one less blue tile with minor factions, so the optimal value defaults are lowered to match
+const SLICE_DEFAULTS = {
+    min_inf: { normal: 4, minor_factions: 2.5 },
+    min_res: { normal: 2.5, minor_factions: 2 },
+    min_total: { normal: 9, minor_factions: 6 },
+    max_total: { normal: 13, minor_factions: 10 },
+};
+
+function update_minor_factions_slice_defaults() {
+    const enabled = $('#minor_factions_toggle').is(':checked');
+    const from = enabled ? 'normal' : 'minor_factions';
+    const to = enabled ? 'minor_factions' : 'normal';
+
+    for (const id in SLICE_DEFAULTS) {
+        const $input = $('#' + id);
+        // only touch values the user hasn't changed themselves
+        if (parseFloat($input.val()) == SLICE_DEFAULTS[id][from]) {
+            $input.val(SLICE_DEFAULTS[id][to]);
+        }
+    }
 }
 
 function update_alliance_teams() {

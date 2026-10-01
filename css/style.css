@@ -524,6 +524,9 @@ h4:first-child {
   top: 1.73em;
   left: 0;
 }
+#draft .slice-graph .minor-faction {
+  opacity: 0.5;
+}
 #draft .unclaim, #draft .claim {
   display: none;
 }

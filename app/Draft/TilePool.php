@@ -37,6 +37,20 @@ class TilePool
     }
 
     /**
+     * With minor factions slices only get 2 blue tiles: either a high and a low tier tile,
+     * or two mid tier tiles.
+     */
+    public function sliceForMinorFactions(int $highLowSlices, int $midMidSlices): TilePool
+    {
+        return new TilePool(
+            array_slice($this->highTier, 0, $highLowSlices),
+            array_slice($this->midTier, 0, $midMidSlices * 2),
+            array_slice($this->lowTier, 0, $highLowSlices),
+            array_slice($this->redTier, 0, ($highLowSlices + $midMidSlices) * 2),
+        );
+    }
+
+    /**
      * @return array<string>
      */
     public function allIds(): array

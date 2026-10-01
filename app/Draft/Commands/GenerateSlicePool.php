@@ -98,7 +98,9 @@ class GenerateSlicePool implements Command
 
         $this->settings->seed->setForSlices($previousTries);
         $this->gatheredTiles->shuffle();
-        $tilePool = $this->gatheredTiles->slice($this->settings->numberOfSlices);
+        $tilePool = $this->settings->minorFactions ?
+            $this->minorFactionsTilePool() :
+            $this->gatheredTiles->slice($this->settings->numberOfSlices);
 
         $tilePoolIsValid = $this->validateTileSelection($tilePool->allIds());
 
@@ -128,13 +130,17 @@ class GenerateSlicePool implements Command
         $slices = [];
 
         for ($i = 0; $i < $this->settings->numberOfSlices; $i++) {
-            $slice = new Slice([
-                $this->tileData[$pool->highTier[$i]],
-                $this->tileData[$pool->midTier[$i]],
-                $this->tileData[$pool->lowTier[$i]],
-                $this->tileData[$pool->redTier[$i * 2]],
-                $this->tileData[$pool->redTier[($i * 2) + 1]],
-            ]);
+            $slice = new Slice(
+                $this->settings->minorFactions ?
+                    $this->minorFactionsSliceTiles($pool, $i) :
+                    [
+                        $this->tileData[$pool->highTier[$i]],
+                        $this->tileData[$pool->midTier[$i]],
+                        $this->tileData[$pool->lowTier[$i]],
+                        $this->tileData[$pool->redTier[$i * 2]],
+                        $this->tileData[$pool->redTier[($i * 2) + 1]],
+                    ],
+            );
 
             $sliceIsValid = $slice->validate(
                 $this->settings->minimumOptimalInfluence,
@@ -161,7 +167,52 @@ class GenerateSlicePool implements Command
             $slices[] = $slice;
         }
 
+        if ($this->settings->minorFactions) {
+            // high+low and mid+mid slices are generated in order, mix them up
+            $this->settings->seed->setForSlices($previousTries);
+            shuffle($slices);
+        }
+
         return $slices;
+    }
+
+    /**
+     * With minor factions, roughly half the slices get a high and a low tier tile, the other half two mid tier tiles.
+     * That uses each tier at about the same rate, so no tier is left out of the draft entirely.
+     */
+    private function minorFactionsTilePool(): TilePool
+    {
+        $numberOfSlices = $this->settings->numberOfSlices;
+        $pool = $this->gatheredTiles;
+
+        // odd number of slices: randomly pick which kind gets the extra slice
+        $highLowSlices = intdiv($numberOfSlices, 2) + ($numberOfSlices % 2 == 1 ? mt_rand(0, 1) : 0);
+
+        // stay within what the tile sets can provide
+        $highLowSlices = min($highLowSlices, count($pool->highTier), count($pool->lowTier));
+        $highLowSlices = max($highLowSlices, $numberOfSlices - intdiv(count($pool->midTier), 2));
+
+        return $pool->sliceForMinorFactions($highLowSlices, $numberOfSlices - $highLowSlices);
+    }
+
+    /**
+     * The first slices in the pool are high+low, the rest are mid+mid
+     *
+     * @return array<Tile>
+     */
+    private function minorFactionsSliceTiles(TilePool $pool, int $i): array
+    {
+        $highLowSlices = count($pool->highTier);
+        $blueTiles = $i < $highLowSlices ?
+            [$pool->highTier[$i], $pool->lowTier[$i]] :
+            [$pool->midTier[($i - $highLowSlices) * 2], $pool->midTier[(($i - $highLowSlices) * 2) + 1]];
+
+        return [
+            $this->tileData[$blueTiles[0]],
+            $this->tileData[$blueTiles[1]],
+            $this->tileData[$pool->redTier[$i * 2]],
+            $this->tileData[$pool->redTier[($i * 2) + 1]],
+        ];
     }
 
     /**

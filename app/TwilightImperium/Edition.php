@@ -53,6 +53,40 @@ enum Edition: string
         };
     }
 
+    // tier counts match data/tile-selection.json
+    public function highTierTileCount(): int
+    {
+        return match($this) {
+            Edition::BASE_GAME => 8,
+            Edition::PROPHECY_OF_KINGS => 4,
+            Edition::THUNDERS_EDGE => 6,
+            Edition::DISCORDANT_STARS => 0,
+            Edition::DISCORDANT_STARS_PLUS => 6,
+        };
+    }
+
+    public function midTierTileCount(): int
+    {
+        return match($this) {
+            Edition::BASE_GAME => 5,
+            Edition::PROPHECY_OF_KINGS => 7,
+            Edition::THUNDERS_EDGE => 6,
+            Edition::DISCORDANT_STARS => 0,
+            Edition::DISCORDANT_STARS_PLUS => 9,
+        };
+    }
+
+    public function lowTierTileCount(): int
+    {
+        return match($this) {
+            Edition::BASE_GAME => 7,
+            Edition::PROPHECY_OF_KINGS => 5,
+            Edition::THUNDERS_EDGE => 3,
+            Edition::DISCORDANT_STARS => 0,
+            Edition::DISCORDANT_STARS_PLUS => 1,
+        };
+    }
+
     public function redTileCount(): int
     {
         return match($this) {
