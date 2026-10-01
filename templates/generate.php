@@ -188,6 +188,10 @@
                                 either a high and a low tier system, or two mid tier systems, plus two red tiles.
                             </p>
                             <p class="help">
+                                The minor faction home system goes in the second ring, between your home system and your neighbour's.
+                                The 7 and 8 player maps don't have enough of those spots, so there some minor factions sit in the third ring or one system closer to one neighbour.
+                            </p>
+                            <p class="help">
                                 Turning this on lowers the slice generation defaults (Optimal Influence 2.5, Resources 2, Total 6 to 10) to match the smaller slices. Values you've changed yourself are left alone.
                             </p>
                         </div>

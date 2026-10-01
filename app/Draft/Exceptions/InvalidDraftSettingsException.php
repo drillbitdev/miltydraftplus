@@ -39,6 +39,16 @@ class InvalidDraftSettingsException extends \Exception
         return new self('Cannot have less minor factions than players');
     }
 
+    public static function notEnoughFactionsForMinorFactions(): self
+    {
+        return new self('These faction sets don\'t have enough factions left over for the minor factions');
+    }
+
+    public static function customFactionsIncludeKeleresConflict(): self
+    {
+        return new self('With the Minor Factions event, the factions can\'t include all four of the Argent Flight, Council Keleres, Mentak Coalition and Xxcha Kingdom');
+    }
+
     public static function unknownTileInCustomSlice($id): self
     {
         return new self('Custom slices contain unknown tile number:' . $id);

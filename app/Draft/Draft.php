@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Draft;
 
 use App\TwilightImperium\Faction;
+use App\TwilightImperium\MinorFactionsMode;
 use App\TwilightImperium\Tile;
 
 class Draft
@@ -24,6 +25,13 @@ class Draft
         /** @var array<Pick> $log */
         public array $log = [],
         public ?PlayerId $currentPlayerId = null,
+        /** @var array<Faction> $minorFactionPool */
+        public array $minorFactionPool = [],
+        /**
+         * Minor faction home systems that differ from the faction's own (Keleres borrows one)
+         * @var array<string, string> $minorFactionHomeSystems faction name => tile
+         */
+        public array $minorFactionHomeSystems = [],
     ) {
     }
 
@@ -49,6 +57,9 @@ class Draft
             self::factionsFromJson($data['factions']),
             array_map(fn ($logData) => Pick::fromJson($logData), $data['draft']['log']),
             $data['draft']['current'] != null ? PlayerId::fromString($data['draft']['current']) : null,
+            // older drafts don't have these keys
+            self::factionsFromJson($data['minor_factions'] ?? []),
+            $data['minor_faction_home_systems'] ?? [],
         );
     }
 
@@ -98,6 +109,8 @@ class Draft
                 'current' => $this->currentPlayerId?->value,
             ],
             'factions' => array_map(fn (Faction $f) => $f->name, $this->factionPool),
+            'minor_factions' => array_map(fn (Faction $f) => $f->name, $this->minorFactionPool),
+            'minor_faction_home_systems' => $this->minorFactionHomeSystems,
             'slices' => array_map(fn (Slice $s) => ['tiles' => $s->tileIds()], $this->slicePool),
         ];
 
@@ -113,13 +126,43 @@ class Draft
         $doneSteps = count($this->log);
         $snakeDraft = array_merge(array_keys($this->players), array_keys(array_reverse($this->players)));
 
-        if (count($this->log) >= (count($this->players) * 3)) {
+        if (count($this->log) >= (count($this->players) * $this->picksPerPlayer())) {
             $this->isDone = true;
             $this->currentPlayerId = null;
         } else {
             $this->isDone = false;
             $this->currentPlayerId = PlayerId::fromString($snakeDraft[$doneSteps % count($snakeDraft)]);
         }
+    }
+
+    /**
+     * Slice, faction and position, plus a minor faction when those are drafted
+     */
+    public function picksPerPlayer(): int
+    {
+        return $this->settings->minorFactionsMode == MinorFactionsMode::DRAFT ? 4 : 3;
+    }
+
+    /**
+     * When minor factions aren't drafted, each player gets one from the (shuffled) minor faction pool
+     */
+    public function assignRandomMinorFactions(): void
+    {
+        if ($this->settings->minorFactionsMode != MinorFactionsMode::RANDOM) {
+            return;
+        }
+
+        foreach (array_keys($this->players) as $i => $playerId) {
+            $this->players[$playerId] = $this->players[$playerId]->assignMinorFaction($this->minorFactionPool[$i]->name);
+        }
+    }
+
+    /**
+     * The tile that goes in the minor faction slot of a slice
+     */
+    public function minorFactionHomeSystem(Faction $faction): string
+    {
+        return $this->minorFactionHomeSystems[$faction->name] ?? $faction->homesystem();
     }
 
     public function canRegenerate(): bool

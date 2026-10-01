@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Draft\Commands;
 
+use App\Draft\Exceptions\InvalidDraftSettingsException;
 use App\Shared\Command;
 use App\Testing\Factories\DraftSettingsFactory;
 use App\Testing\TestCase;
@@ -109,5 +110,40 @@ class GenerateFactionPoolTest extends TestCase
         foreach($choices as $c) {
             $this->assertEquals($c->edition, Edition::BASE_GAME);
         }
+    }
+
+    #[Test]
+    public function itAvoidsHavingArgentKeleresMentakAndXxchaWithMinorFactions(): void
+    {
+        for ($seed = 1; $seed <= 20; $seed++) {
+            $generator = new GenerateFactionPool(DraftSettingsFactory::make([
+                'seed' => $seed,
+                'customFactions' => ['The Argent Flight', 'The Mentak Coalition', 'The Xxcha Kingdom'],
+                'factionSets' => [Edition::BASE_GAME, Edition::PROPHECY_OF_KINGS, Edition::THUNDERS_EDGE],
+                'numberOfFactions' => 25,
+                'minorFactions' => true,
+            ]));
+
+            $names = array_map(fn (Faction $f) => $f->name, $generator->handle());
+
+            $this->assertFalse(GenerateMinorFactionPool::includesKeleresConflict($names));
+            $this->assertCount(25, array_unique($names));
+        }
+    }
+
+    #[Test]
+    public function itRejectsCustomFactionsWithArgentKeleresMentakAndXxchaWithMinorFactions(): void
+    {
+        $generator = new GenerateFactionPool(DraftSettingsFactory::make([
+            'customFactions' => ['The Argent Flight', 'The Council Keleres', 'The Mentak Coalition', 'The Xxcha Kingdom'],
+            'factionSets' => [Edition::BASE_GAME, Edition::PROPHECY_OF_KINGS, Edition::THUNDERS_EDGE],
+            'numberOfFactions' => 6,
+            'minorFactions' => true,
+        ]));
+
+        $this->expectException(InvalidDraftSettingsException::class);
+        $this->expectExceptionMessage(InvalidDraftSettingsException::customFactionsIncludeKeleresConflict()->getMessage());
+
+        $generator->handle();
     }
 }

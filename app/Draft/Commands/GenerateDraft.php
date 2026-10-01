@@ -28,8 +28,10 @@ class GenerateDraft implements Command
         // not going through dispatch method because if we're faking it then that sucks
         $slices = (new GenerateSlicePool($this->settings))->handle();
         $factions = (new GenerateFactionPool($this->settings))->handle();
+        $minorFactionGenerator = new GenerateMinorFactionPool($this->settings, $factions);
+        $minorFactions = $minorFactionGenerator->handle();
 
-        return new Draft(
+        $draft = new Draft(
             DraftId::generate(),
             false,
             $players,
@@ -39,7 +41,12 @@ class GenerateDraft implements Command
             $factions,
             [],
             PlayerId::fromString(array_key_first($players)),
+            $minorFactions,
+            $minorFactionGenerator->homeSystems($minorFactions),
         );
+        $draft->assignRandomMinorFactions();
+
+        return $draft;
     }
 
     protected function generateSecrets(): Secrets

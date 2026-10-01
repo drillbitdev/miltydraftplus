@@ -23,6 +23,11 @@ class InvalidPickException extends \Exception
         return new self('Cannot undo pick: Player has not picked ' . $category->value);
     }
 
+    public static function minorFactionsNotDrafted()
+    {
+        return new self('Minor factions are not drafted in this draft');
+    }
+
     public static function notPlayersTurn()
     {
         return new self("It's not your turn!");

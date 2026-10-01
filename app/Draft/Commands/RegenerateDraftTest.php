@@ -6,9 +6,11 @@ namespace App\Draft\Commands;
 
 use App\Draft\Slice;
 use App\Shared\Command;
+use App\Testing\Factories\DraftSettingsFactory;
 use App\Testing\TestCase;
 use App\Testing\UsesTestDraft;
 use App\TwilightImperium\Faction;
+use App\TwilightImperium\MinorFactionsMode;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 
@@ -92,5 +94,28 @@ class RegenerateDraftTest extends TestCase
         $this->reloadDraft();
 
         $this->assertSame($this->testDraft->currentPlayerId->value, array_key_first($this->testDraft->players));
+    }
+
+    #[Test]
+    public function itRedrawsMinorFactionsWithTheFactions(): void
+    {
+        $this->deleteTestDraft();
+        $this->setupTestDraft(DraftSettingsFactory::make([
+            'numberOfPlayers' => 6,
+            'minorFactions' => true,
+            'minorFactionsMode' => MinorFactionsMode::RANDOM,
+        ]));
+
+        (new RegenerateDraft($this->testDraft, false, true, false))->handle();
+        $this->reloadDraft();
+
+        $factions = array_map(fn (Faction $f) => $f->name, $this->testDraft->factionPool);
+        $minorFactions = array_map(fn (Faction $f) => $f->name, $this->testDraft->minorFactionPool);
+        $assigned = array_map(fn ($p) => $p->pickedMinorFaction, array_values($this->testDraft->players));
+
+        $this->assertCount(6, $minorFactions);
+        $this->assertEmpty(array_intersect($factions, $minorFactions));
+        // random assignments follow the new pool
+        $this->assertEqualsCanonicalizing($minorFactions, $assigned);
     }
 }

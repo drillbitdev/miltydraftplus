@@ -64,6 +64,18 @@ class Settings
         return in_array($e, $this->tileSets);
     }
 
+    /**
+     * How many minor factions to generate: the pool to draft from, or one per player when they're randomly assigned
+     */
+    public function minorFactionPoolSize(): int
+    {
+        return match($this->minorFactionsMode) {
+            MinorFactionsMode::DRAFT => (int) $this->numberOfMinorFactions,
+            MinorFactionsMode::RANDOM => count($this->playerNames),
+            null => 0,
+        };
+    }
+
     public function toArray()
     {
         /**
@@ -212,6 +224,18 @@ class Settings
 
         if ($factions < $this->numberOfFactions) {
             throw InvalidDraftSettingsException::notEnoughFactionsInSet($factions);
+        }
+
+        if ($this->minorFactions) {
+            // Keleres, Argent, Mentak and Xxcha can't all be in play, so one of them is left out
+            $keleresIncluded = $this->includeCouncilKeleresFaction || $this->includesFactionSet(Edition::THUNDERS_EDGE);
+            if ($keleresIncluded && $this->includesFactionSet(Edition::BASE_GAME) && $this->includesFactionSet(Edition::PROPHECY_OF_KINGS)) {
+                $factions--;
+            }
+
+            if ($this->numberOfFactions + $this->minorFactionPoolSize() > $factions) {
+                throw InvalidDraftSettingsException::notEnoughFactionsForMinorFactions();
+            }
         }
     }
 

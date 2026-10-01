@@ -462,9 +462,9 @@ function lookup(player_index, tile_index) {
             else if(p.slice != null) {
                 let tiles = draft.slices[p.slice].tiles;
 
-                // minor faction slices have 4 tiles, the minor faction home system sits in slot 3
+                // minor faction slices have 4 tiles, the player's minor faction home system sits in slot 3
                 if(tiles.length == 4) {
-                    if(tile_index == MINOR_FACTION_SLOT) return ["0", "Minor faction"];
+                    if(tile_index == MINOR_FACTION_SLOT) return minor_faction_home_system(p);
                     if(tile_index > MINOR_FACTION_SLOT) tile_index--;
                 }
 
@@ -475,6 +475,15 @@ function lookup(player_index, tile_index) {
     }
 
     return ["EMPTY", ordinal(parseInt(player_index) + 1)];
+}
+
+function minor_faction_home_system(p) {
+    if(p.minor_faction == null) return ["0", "Minor faction", true];
+
+    let h = $('[data-minor-faction="' + p.minor_faction + '"]').data('homesystem');
+    if(typeof(h) == 'undefined') h = "0";
+
+    return [h, p.minor_faction, true];
 }
 
 function draw_tile(tile) {
@@ -507,7 +516,8 @@ function draw_tile(tile) {
             if(chunks[1] == "H") {
                 if(tilename == "EMPTY") tilename = "0";
                 label = result[1];
-            } else if(chunks[1] == MINOR_FACTION_SLOT && tilename == "0") {
+            } else if(result[2]) {
+                // minor faction home system: label it with the faction rather than the tile number
                 label = result[1];
             }
         }

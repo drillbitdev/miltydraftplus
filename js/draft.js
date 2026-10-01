@@ -79,7 +79,7 @@ $(document).ready(function () {
             draft_pick.admin = localStorage.getItem('admin_' + draft.id);
         }
 
-        $('#confirm-category').html(draft_pick.category);
+        $('#confirm-category').html(draft_pick.category.replace('_', ' '));
 
         let show_value = draft_pick.value;
 
@@ -459,6 +459,9 @@ function draft_status() {
     if (current_player.slice != null) {
         $('button.draft[data-category="slice"]').hide();
     }
+    if (current_player.minor_faction != null) {
+        $('button.draft[data-category="minor_faction"]').hide();
+    }
 
     // Forcing team positions logic
     if (current_player.position == null && draft.config.alliance && draft.config.alliance["alliance_teams_position"] != 'none') {
@@ -499,17 +502,10 @@ function draft_status() {
     // Force teammates to pick within the same category back to back
     if (draft.config.alliance && draft.config.alliance["force_double_picks"]) {
         let partner = getPartner(current_player.id);
-        if (current_player.faction == null && partner.faction != null) {
-            $('button.draft[data-category="position"]').hide();
-            $('button.draft[data-category="slice"]').hide();
-        }
-        if (current_player.slice == null && partner.slice != null) {
-            $('button.draft[data-category="faction"]').hide();
-            $('button.draft[data-category="position"]').hide();
-        }
-        if (current_player.position == null && partner.position != null) {
-            $('button.draft[data-category="faction"]').hide();
-            $('button.draft[data-category="slice"]').hide();
+        for (const category of ['faction', 'slice', 'position', 'minor_faction']) {
+            if (current_player[category] == null && partner[category] != null) {
+                $('button.draft:not([data-category="' + category + '"])').hide();
+            }
         }
     }
 }
@@ -559,7 +555,7 @@ function ordinal(number) {
 
 function reset_draft() {
     // Reset displayed choices
-    $(".chosen-slice, .chosen-faction, .chosen-position").html("?");
+    $(".chosen-slice, .chosen-faction, .chosen-position, .chosen-minor_faction").html("?");
     $('.drafted-by').html("").hide();
     $('button.draft').prop('disabled', false);
     $('.option').removeClass('picked');

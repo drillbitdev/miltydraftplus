@@ -14,6 +14,7 @@ class Seed
     private const OFFSET_SLICES = 0;
     private const OFFSET_FACTIONS = 1;
     private const OFFSET_PLAYER_ORDER = 2;
+    private const OFFSET_MINOR_FACTIONS = 3;
     private int $seed;
 
     public function __construct(?int $seed = null)
@@ -43,6 +44,11 @@ class Seed
     public function setForSlices($previousTries = 0): void
     {
         mt_srand($this->seed + self::OFFSET_SLICES + $previousTries);
+    }
+
+    public function setForMinorFactions(): void
+    {
+        mt_srand($this->seed + self::OFFSET_MINOR_FACTIONS);
     }
 
     public function setForPlayerOrder(): void

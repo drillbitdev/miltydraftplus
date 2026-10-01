@@ -48,6 +48,11 @@ class RegenerateDraft implements Command
         if ($this->regenerateFactions) {
             $factions = (new GenerateFactionPool($this->draft->settings->withNewSeed($seed)))->handle();
             $this->draft->factionPool = $factions;
+            // minor factions can't overlap with the new faction pool, so they're redrawn too
+            $minorFactionGenerator = new GenerateMinorFactionPool($this->draft->settings->withNewSeed($seed), $factions);
+            $this->draft->minorFactionPool = $minorFactionGenerator->handle();
+            $this->draft->minorFactionHomeSystems = $minorFactionGenerator->homeSystems($this->draft->minorFactionPool);
+            $this->draft->assignRandomMinorFactions();
         }
 
         app()->repository->save($this->draft);

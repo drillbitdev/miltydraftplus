@@ -428,6 +428,54 @@ class SettingsTest extends TestCase
         $draft->validate();
     }
 
+    #[Test]
+    public function itValidatesThereAreEnoughFactionsForMinorFactions(): void {
+        $draft = DraftSettingsFactory::make([
+            'numberOfPlayers' => 6,
+            'numberOfFactions' => 10,
+            'factionSets' => [Edition::BASE_GAME],
+            'minorFactions' => true,
+            'minorFactionsMode' => MinorFactionsMode::DRAFT,
+            'numberOfMinorFactions' => 8,
+        ]);
+
+        $this->expectException(InvalidDraftSettingsException::class);
+        $this->expectExceptionMessage(InvalidDraftSettingsException::notEnoughFactionsForMinorFactions()->getMessage());
+        $draft->validate();
+    }
+
+    #[Test]
+    public function itLeavesOutOneOfArgentKeleresMentakAndXxchaWhenCountingFactions(): void {
+        // 17 + 7 + 6 + Keleres = 31, but only 30 can be in play
+        $draft = DraftSettingsFactory::make([
+            'numberOfPlayers' => 6,
+            'numberOfFactions' => 22,
+            'factionSets' => [Edition::BASE_GAME, Edition::PROPHECY_OF_KINGS, Edition::THUNDERS_EDGE],
+            'minorFactions' => true,
+            'minorFactionsMode' => MinorFactionsMode::DRAFT,
+            'numberOfMinorFactions' => 9,
+        ]);
+
+        $this->expectException(InvalidDraftSettingsException::class);
+        $this->expectExceptionMessage(InvalidDraftSettingsException::notEnoughFactionsForMinorFactions()->getMessage());
+        $draft->validate();
+    }
+
+    #[Test]
+    public function itKnowsTheMinorFactionPoolSize(): void {
+        $this->assertSame(0, DraftSettingsFactory::make()->minorFactionPoolSize());
+        $this->assertSame(7, DraftSettingsFactory::make([
+            'minorFactions' => true,
+            'minorFactionsMode' => MinorFactionsMode::DRAFT,
+            'numberOfMinorFactions' => 7,
+        ])->minorFactionPoolSize());
+        $this->assertSame(5, DraftSettingsFactory::make([
+            'numberOfPlayers' => 5,
+            'minorFactions' => true,
+            'minorFactionsMode' => MinorFactionsMode::RANDOM,
+        ])->minorFactionPoolSize());
+    }
+
     #[DataProviderExternal(TestDrafts::class, 'provideTestDrafts')]
     #[Test]
     public function itCanBeInstantiatedFromJson($data): void {

@@ -9,8 +9,10 @@ use App\Draft\Pick;
 use App\Draft\PickCategory;
 use App\Draft\PlayerId;
 use App\Shared\Command;
+use App\Testing\Factories\DraftSettingsFactory;
 use App\Testing\TestCase;
 use App\Testing\UsesTestDraft;
+use App\TwilightImperium\MinorFactionsMode;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 
@@ -126,5 +128,43 @@ class PlayerPickTest extends TestCase
         $pick2Cmd = new PlayerPick($this->testDraft, new Pick($player2Id, $category, $pick));
         $pick2Cmd->handle();
 
+    }
+
+    #[Test]
+    public function itRejectsMinorFactionPicksWhenTheyAreNotDrafted(): void
+    {
+        $this->deleteTestDraft();
+        $this->setupTestDraft(DraftSettingsFactory::make([
+            'minorFactions' => true,
+            'minorFactionsMode' => MinorFactionsMode::RANDOM,
+        ]));
+
+        $pickCmd = new PlayerPick($this->testDraft, new Pick(
+            $this->testDraft->currentPlayerId,
+            PickCategory::MINOR_FACTION,
+            $this->testDraft->minorFactionPool[0]->name,
+        ));
+
+        $this->expectException(InvalidPickException::class);
+        $this->expectExceptionMessage(InvalidPickException::minorFactionsNotDrafted()->getMessage());
+
+        $pickCmd->handle();
+    }
+
+    #[Test]
+    public function itCanPickAMinorFaction(): void
+    {
+        $this->deleteTestDraft();
+        $this->setupTestDraft(DraftSettingsFactory::make([
+            'minorFactions' => true,
+            'minorFactionsMode' => MinorFactionsMode::DRAFT,
+        ]));
+        $playerId = $this->testDraft->currentPlayerId;
+        $minorFaction = $this->testDraft->minorFactionPool[0]->name;
+
+        (new PlayerPick($this->testDraft, new Pick($playerId, PickCategory::MINOR_FACTION, $minorFaction)))->handle();
+
+        $this->reloadDraft();
+        $this->assertSame($minorFaction, $this->testDraft->playerById($playerId)->pickedMinorFaction);
     }
 }

@@ -1,5 +1,6 @@
 <?php
     /** @var \App\Draft\Draft $draft */
+    $minorFactionsDrafted = $draft->settings->minorFactionsMode == \App\TwilightImperium\MinorFactionsMode::DRAFT;
 ?>
 
 <!DOCTYPE html>
@@ -71,6 +72,11 @@
                                 <p>
                                     Slice: <span class="chosen-slice">?</span><br />
                                     Faction: <span class="chosen-faction">?</span><br />
+                                    <?php if ($minorFactionsDrafted) : ?>
+                                        Minor faction: <span class="chosen-minor_faction">?</span><br />
+                                    <?php elseif ($draft->settings->minorFactions) : ?>
+                                        Minor faction: <span class="assigned-minor-faction"><?= $player->pickedMinorFaction ?></span><br />
+                                    <?php endif; ?>
                                     Position: <span class="chosen-position">?</span>
                                 </p>
                                 <p class="center">
@@ -100,6 +106,37 @@
                             <?php endforeach; ?>
                         </div>
                     </div>
+                    <?php if ($draft->settings->minorFactions) : ?>
+                        <div class="factions minor-factions draft-options">
+                            <h3>Minor Factions</h3>
+                            <?php if (! $minorFactionsDrafted) : ?>
+                                <p class="help">Minor factions are randomly assigned. Each player's minor faction home system goes in their slice, between their home system and the next.</p>
+                            <?php endif; ?>
+                            <div class="options">
+                                <?php foreach ($draft->minorFactionPool as $faction) : ?>
+                                    <div class="faction option" data-homesystem="<?= $draft->minorFactionHomeSystem($faction) ?>" data-minor-faction="<?= $faction->name ?>">
+                                        <div>
+                                            <img src="<?= url('img/factions/ti_' . $faction->id . '.png') ?>" /><br />
+
+                                            <span><?= $faction->name ?></span><br />
+                                            <a href="#" data-id="<?= $faction->id ?>" class="open-reference">[reference]</a>
+                                            <a target="_blank" href="<?= $faction->linkToWiki ?>" class="more">[wiki]</a><br />
+                                            <?php if ($minorFactionsDrafted) : ?>
+                                                <button class="draft" data-category="minor_faction" data-value="<?= $faction->name ?>">Draft</button>
+                                                <span class="drafted-by" data-category="minor_faction" data-value="<?= $faction->name ?>"></span>
+                                            <?php else : ?>
+                                                <?php foreach ($draft->players as $player) : ?>
+                                                    <?php if ($player->pickedMinorFaction == $faction->name) : ?>
+                                                        <p class="assigned-to">Assigned to <?= $player->name ?></p>
+                                                    <?php endif; ?>
+                                                <?php endforeach; ?>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    <?php endif; ?>
                     <div class="slices draft-options">
                         <h3>Slices</h3>
                         <div class="options">
@@ -191,7 +228,7 @@
                     <?php if ($draft->canRegenerate()) : ?>
                         <p id="regen-options">
                             <label for="shuffle_slices"><input type="checkbox" checked id="shuffle_slices" name="shuffle_slices" /> New Slices</label>
-                            <label for="shuffle_factions"><input type="checkbox" checked id="shuffle_factions" name="shuffle_factions" /> New Factions</label>
+                            <label for="shuffle_factions"><input type="checkbox" checked id="shuffle_factions" name="shuffle_factions" /> New Factions<?= $draft->settings->minorFactions ? ' and minor factions' : '' ?></label>
                             <label for="shuffle_order"><input type="checkbox" id="shuffle_order" name="shuffle_order" /> New <?= ($draft->settings->allianceTeamMode == \App\TwilightImperium\AllianceTeamMode::RANDOM) ? 'teams and ' : '' ?>player order</label>
                             <button id="regenerate" class="btn">Regenerate</button>
                         </p>
@@ -291,6 +328,18 @@
                         <p>
                             <label>Force Team Double Picks:</label> <strong><?= yesno($draft->settings->allianceForceDoublePicks) ?></strong>
                         </p>
+                    <?php endif; ?>
+                    <?php if ($draft->settings->minorFactions) : ?>
+                        <hr />
+                        <h3>Minor Factions Event</h3>
+                        <p>
+                            <label>Minor faction assignment:</label> <strong><?= $minorFactionsDrafted ? 'Drafted' : 'Random' ?></strong>
+                        </p>
+                        <?php if ($minorFactionsDrafted) : ?>
+                            <p>
+                                <label>Number of Minor Factions:</label> <strong><?= $draft->settings->numberOfMinorFactions ?></strong>
+                            </p>
+                        <?php endif; ?>
                     <?php endif; ?>
                 </div>
             </div>

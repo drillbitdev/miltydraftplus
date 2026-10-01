@@ -78,6 +78,7 @@ class PlayerTest extends TestCase
             'faction' => 'Mahact',
             'slice' => '3',
             'team' => 'A',
+            'minor_faction' => null,
         ], $player1->toArray());
         $this->assertSame([
             'id' => '2',
@@ -87,6 +88,7 @@ class PlayerTest extends TestCase
             'faction' => null,
             'slice' => null,
             'team' => null,
+            'minor_faction' => null,
         ], $player2->toArray());
     }
 
@@ -103,6 +105,10 @@ class PlayerTest extends TestCase
         yield 'When picking faction' => [
             'category' => PickCategory::FACTION,
         ];
+
+        yield 'When picking minor faction' => [
+            'category' => PickCategory::MINOR_FACTION,
+        ];
     }
 
     #[Test]
@@ -117,6 +123,7 @@ class PlayerTest extends TestCase
             $category == PickCategory::FACTION ? null : 'Mahact',
             $category == PickCategory::SLICE ? null : '3',
             'A',
+            $category == PickCategory::MINOR_FACTION ? null : 'The Naalu Collective',
         );
 
         $newPlayerVo = $player->pick(new Pick(PlayerId::fromString('1'), $category, 'some-value'));
@@ -145,6 +152,16 @@ class PlayerTest extends TestCase
                 $this->assertSame('some-value', $newPlayerVo->pickedSlice);
 
                 break;
+            case PickCategory::MINOR_FACTION:
+                $this->assertSame($player->pickedPosition, $newPlayerVo->pickedPosition);
+                $this->assertSame($player->pickedFaction, $newPlayerVo->pickedFaction);
+                $this->assertSame($player->pickedSlice, $newPlayerVo->pickedSlice);
+                $this->assertSame('some-value', $newPlayerVo->pickedMinorFaction);
+
+                break;
+        }
+        if ($category != PickCategory::MINOR_FACTION) {
+            $this->assertSame($player->pickedMinorFaction, $newPlayerVo->pickedMinorFaction);
         }
     }
 }

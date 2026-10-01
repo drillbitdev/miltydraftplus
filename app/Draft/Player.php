@@ -18,6 +18,8 @@ class Player
         public readonly ?string $pickedFaction = null,
         public readonly ?string $pickedSlice = null,
         public readonly ?string $team = null,
+        // drafted, or randomly assigned when the draft is generated
+        public readonly ?string $pickedMinorFaction = null,
     ) {
     }
 
@@ -31,6 +33,8 @@ class Player
             $playerData['faction'],
             $playerData['slice'],
             $playerData['team'] ?? null,
+            // older drafts don't have this key
+            $playerData['minor_faction'] ?? null,
         );
     }
 
@@ -56,6 +60,21 @@ class Player
             $this->pickedFaction,
             $this->pickedSlice,
             $team,
+            $this->pickedMinorFaction,
+        );
+    }
+
+    public function assignMinorFaction(string $minorFaction): Player
+    {
+        return new self(
+            $this->id,
+            $this->name,
+            $this->claimed,
+            $this->pickedPosition,
+            $this->pickedFaction,
+            $this->pickedSlice,
+            $this->team,
+            $minorFaction,
         );
     }
 
@@ -73,6 +92,7 @@ class Player
             $this->pickedFaction,
             $this->pickedSlice,
             $this->team,
+            $this->pickedMinorFaction,
         );
     }
 
@@ -90,6 +110,7 @@ class Player
             $this->pickedFaction,
             $this->pickedSlice,
             $this->team,
+            $this->pickedMinorFaction,
         );
     }
 
@@ -103,6 +124,7 @@ class Player
             'faction' => $this->pickedFaction,
             'slice' => $this->pickedSlice,
             'team' => $this->team,
+            'minor_faction' => $this->pickedMinorFaction,
         ];
     }
 
@@ -121,12 +143,18 @@ class Player
         return $this->pickedPosition != null;
     }
 
+    public function hasPickedMinorFaction(): bool
+    {
+        return $this->pickedMinorFaction != null;
+    }
+
     public function getPick(PickCategory $category): ?string
     {
         return match($category) {
             PickCategory::POSITION => $this->pickedPosition,
             PickCategory::SLICE => $this->pickedSlice,
             PickCategory::FACTION => $this->pickedFaction,
+            PickCategory::MINOR_FACTION => $this->pickedMinorFaction,
         };
     }
 
@@ -136,6 +164,7 @@ class Player
             PickCategory::FACTION => $this->hasPickedFaction(),
             PickCategory::SLICE => $this->hasPickedSlice(),
             PickCategory::POSITION => $this->hasPickedPosition(),
+            PickCategory::MINOR_FACTION => $this->hasPickedMinorFaction(),
         };
     }
 
@@ -153,6 +182,7 @@ class Player
             $pick->category == PickCategory::FACTION ? $pick->pickedOption : $this->pickedFaction,
             $pick->category == PickCategory::SLICE ? $pick->pickedOption : $this->pickedSlice,
             $this->team,
+            $pick->category == PickCategory::MINOR_FACTION ? $pick->pickedOption : $this->pickedMinorFaction,
         );
     }
 
@@ -170,6 +200,7 @@ class Player
             $category == PickCategory::FACTION ? null : $this->pickedFaction,
             $category == PickCategory::SLICE ? null : $this->pickedSlice,
             $this->team,
+            $category == PickCategory::MINOR_FACTION ? null : $this->pickedMinorFaction,
         );
     }
 }
