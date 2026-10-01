@@ -1,0 +1,14 @@
+.git
+.github
+.env
+.env.*
+!.env.example
+deploy/tunnel.env
+vendor
+tmp
+data/drafts
+data/test-drafts
+.phpunit.cache
+.php-cs-fixer.cache
+.idea
+.DS_Store

@@ -10,6 +10,10 @@
        Access-Control-Allow-Origin *
    }
 
+    # Only css/js/img and root icons are public; never serve dotfiles (.env, .git), drafts (contain admin_pass) or source
+    @private path /.* /*/.* /data/* /vendor/* /app/* /bootstrap/* /templates/* /deploy/* /bin/* /tmp/* /composer.* /*.md /phpunit.xml /phpstan.neon /supervisord.*
+    respond @private 404
+
     @options method OPTIONS
     respond @options 204
 

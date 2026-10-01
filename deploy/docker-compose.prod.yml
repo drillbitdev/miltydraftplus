@@ -1,13 +1,18 @@
+name: milty
+
 services:
   app:
     build:
-      context: .
+      context: ..
       dockerfile: deploy/app/Dockerfile
       target: production
     container_name: milty-app
     restart: unless-stopped
     tty: true
     working_dir: /code
+    volumes:
+      - ../.env:/code/.env:ro
+      - drafts:/code/data/drafts
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost" ]
       interval: 1m30s
@@ -15,3 +20,17 @@ services:
       retries: 3
       start_period: 40s
       start_interval: 5s
+
+  # Cloudflare Tunnel: publishes the app on your domain without opening any ports on the server.
+  # Point the tunnel's public hostname at http://app:80 in the Cloudflare dashboard.
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: milty-tunnel
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    env_file: tunnel.env
+    depends_on:
+      - app
+
+volumes:
+  drafts:

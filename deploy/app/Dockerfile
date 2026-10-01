@@ -39,4 +39,5 @@ FROM base AS production
 
 COPY --chown=app:app . /code
 
-RUN composer install --no-dev --optimize-autoloader
+RUN composer install --no-dev --optimize-autoloader \
+  && mkdir -p data/drafts
