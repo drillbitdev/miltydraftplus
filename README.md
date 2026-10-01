@@ -48,7 +48,14 @@ If you want to, you can add the certificate to your device's truster certificate
    cp deploy/tunnel.env.example deploy/tunnel.env   # paste TUNNEL_TOKEN
    docker compose -f deploy/docker-compose.prod.yml up -d --build
    ```
-4. To update: `git pull && docker compose -f deploy/docker-compose.prod.yml up -d --build`.
+4. To update: push to `main`, then run `bin/deploy` from your machine. It SSHes to the host `milty`, so add this to `~/.ssh/config` once:
+   ```
+   Host milty
+       HostName <server-ip>
+       User root
+       IdentityFile ~/.ssh/id_ed25519_personal
+   ```
+   (or run `DEPLOY_HOST=root@<server-ip> bin/deploy`).
 
 Drafts live in the `drafts` Docker volume and survive rebuilds. Back them up with
 `docker run --rm -v milty_drafts:/d -v "$PWD":/b alpine tar czf /b/drafts.tgz -C /d .`
