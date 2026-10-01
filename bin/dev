@@ -1,0 +1,80 @@
+#!/usr/bin/env sh
+# Local dev helper. Runs all PHP tooling inside Docker, so no local PHP/composer install is needed.
+#
+#   bin/dev install         composer install
+#   bin/dev serve           run the app on http://localhost:$PORT (default 8766, set URL in .env to match)
+#   bin/dev stop            stop the server
+#   bin/dev test [args]     run phpunit (e.g. bin/dev test --testsuite core --filter Draft)
+#   bin/dev cs | cs:fix     php-cs-fixer check / fix
+#   bin/dev phpstan         static analysis
+#   bin/dev check           everything CI runs: cs, phpstan, core + data test suites
+
+set -e
+cd "$(dirname "$0")/.."
+
+IMAGE=php:8.2-fpm-alpine
+PORT=${PORT:-8766}
+NAME=milty-dev
+
+run() {
+    docker run --rm -u "$(id -u):$(id -g)" \
+        -e PHP_CS_FIXER_IGNORE_ENV=1 -e COMPOSER_HOME=/code/tmp/composer-home \
+        -v "$PWD":/code -w /code "$@"
+}
+
+composer_bin() {
+    if [ ! -f tmp/composer ]; then
+        mkdir -p tmp
+        docker create --name milty-composer-tmp composer:2 >/dev/null
+        docker cp milty-composer-tmp:/usr/bin/composer tmp/composer
+        docker rm milty-composer-tmp >/dev/null
+    fi
+}
+
+mkdir -p tmp/test-drafts data/drafts
+
+cmd=${1:-help}
+[ $# -gt 0 ] && shift
+
+case "$cmd" in
+    install)
+        composer_bin
+        run "$IMAGE" php tmp/composer install --prefer-dist --no-interaction "$@"
+        ;;
+    composer)
+        composer_bin
+        run "$IMAGE" php tmp/composer "$@"
+        ;;
+    serve)
+        [ -f .env ] || { echo "No .env found; copy .env.example and set URL=\"http://localhost:$PORT/\""; exit 1; }
+        docker rm -f "$NAME" >/dev/null 2>&1 || true
+        docker run -d --name "$NAME" -u "$(id -u):$(id -g)" -p "$PORT:8080" -v "$PWD":/code -w /code \
+            "$IMAGE" php -S 0.0.0.0:8080 -t /code deploy/dev/router.php >/dev/null
+        echo "Serving on http://localhost:$PORT (logs: docker logs -f $NAME)"
+        ;;
+    stop)
+        docker rm -f "$NAME" >/dev/null 2>&1 && echo "Stopped" || echo "Not running"
+        ;;
+    test)
+        run "$IMAGE" php -d memory_limit=2G vendor/bin/phpunit "$@"
+        ;;
+    cs)
+        run "$IMAGE" php vendor/bin/php-cs-fixer fix --verbose --dry-run "$@"
+        ;;
+    cs:fix)
+        run "$IMAGE" php vendor/bin/php-cs-fixer fix --verbose "$@"
+        ;;
+    phpstan)
+        run "$IMAGE" php vendor/bin/phpstan analyse --memory-limit=2G "$@"
+        ;;
+    check)
+        "$0" cs
+        "$0" phpstan --no-progress
+        for suite in core data; do
+            run "$IMAGE" php -d memory_limit=2G vendor/bin/paratest --processes=4 --testsuite "$suite"
+        done
+        ;;
+    *)
+        sed -n '2,11p' "$0" | sed 's/^# \{0,1\}//'
+        ;;
+esac
