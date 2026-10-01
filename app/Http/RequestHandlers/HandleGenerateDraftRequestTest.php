@@ -238,12 +238,23 @@ class HandleGenerateDraftRequestTest extends RequestHandlerTestCase
         yield 'Alliance Force double picks' => [
             'postData' => [
                 'alliance_on' => true,
-                'force_double_picks' => 'on',
+                'force_double_picks' => 'true',
                 'alliance_teams' => 'random',
                 'alliance_teams_position' => 'neighbors',
             ],
             'field' => 'allianceForceDoublePicks',
             'expected' => true,
+            'expectedWhenNotSet' => null,
+        ];
+        yield 'Alliance Force double picks disabled' => [
+            'postData' => [
+                'alliance_on' => true,
+                'force_double_picks' => 'false',
+                'alliance_teams' => 'random',
+                'alliance_teams_position' => 'neighbors',
+            ],
+            'field' => 'allianceForceDoublePicks',
+            'expected' => false,
             'expectedWhenNotSet' => null,
         ];
         yield 'Minor Factions' => [

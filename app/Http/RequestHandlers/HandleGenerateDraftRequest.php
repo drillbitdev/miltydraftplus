@@ -92,7 +92,7 @@ class HandleGenerateDraftRequest extends RequestHandler
             $allianceMode,
             $allianceMode ? AllianceTeamMode::from($this->request->get('alliance_teams')) : null,
             $allianceMode ? AllianceTeamPosition::from($this->request->get('alliance_teams_position')) : null,
-            $allianceMode ? $this->request->get('force_double_picks') == 'on' : null,
+            $allianceMode ? $this->request->get('force_double_picks') == 'true' : null,
             $minorFactions,
             $minorFactions ? MinorFactionsMode::from($this->request->get('minor_factions_mode')) : null,
         );
