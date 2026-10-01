@@ -13,6 +13,7 @@ use App\Testing\UsesTestDraft;
 use App\TwilightImperium\AllianceTeamMode;
 use App\TwilightImperium\AllianceTeamPosition;
 use App\TwilightImperium\Edition;
+use App\TwilightImperium\MinorFactionsMode;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 
@@ -243,6 +244,24 @@ class HandleGenerateDraftRequestTest extends RequestHandlerTestCase
             ],
             'field' => 'allianceForceDoublePicks',
             'expected' => true,
+            'expectedWhenNotSet' => null,
+        ];
+        yield 'Minor Factions' => [
+            'postData' => [
+                'minor_factions_on' => '1',
+                'minor_factions_mode' => 'draft',
+            ],
+            'field' => 'minorFactions',
+            'expected' => true,
+            'expectedWhenNotSet' => false,
+        ];
+        yield 'Minor Factions Mode' => [
+            'postData' => [
+                'minor_factions_on' => '1',
+                'minor_factions_mode' => 'random',
+            ],
+            'field' => 'minorFactionsMode',
+            'expected' => MinorFactionsMode::RANDOM,
             'expectedWhenNotSet' => null,
         ];
     }

@@ -113,6 +113,9 @@ $(document).ready(function () {
 
     update_alliance_mode();
     init_player_count();
+
+    $("#minor_factions_toggle").on('change', update_minor_factions);
+    update_minor_factions();
 });
 
 function toggleExpansion($checkbox) {
@@ -227,6 +230,12 @@ function update_alliance_mode() {
         $('#enable_alliance_mode').show();
     }
 
+}
+
+function update_minor_factions() {
+    const enabled = $('#minor_factions_toggle').is(':checked');
+    $(".minor_factions_only input").prop("disabled", !enabled);
+    $(".minor_factions_only").toggle(enabled);
 }
 
 function update_alliance_teams() {

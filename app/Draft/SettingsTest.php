@@ -11,6 +11,7 @@ use App\Testing\TestDrafts;
 use App\TwilightImperium\AllianceTeamMode;
 use App\TwilightImperium\AllianceTeamPosition;
 use App\TwilightImperium\Edition;
+use App\TwilightImperium\MinorFactionsMode;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\DataProviderExternal;
 use PHPUnit\Framework\Attributes\Test;
@@ -59,6 +60,8 @@ class SettingsTest extends TestCase
             AllianceTeamMode::RANDOM,
             AllianceTeamPosition::NEIGHBORS,
             true,
+            true,
+            MinorFactionsMode::RANDOM,
         );
 
         $array = $draftSettings->toArray();
@@ -97,6 +100,29 @@ class SettingsTest extends TestCase
         $this->assertSame('random', $array['alliance']['alliance_teams']);
         $this->assertSame('neighbors', $array['alliance']['alliance_teams_position']);
         $this->assertSame(true, $array['alliance']['force_double_picks']);
+        $this->assertSame('random', $array['minor_factions']['mode']);
+    }
+
+    #[Test]
+    public function itOmitsMinorFactionsFromArrayWhenDisabled(): void
+    {
+        $array = DraftSettingsFactory::make(['minorFactions' => false])->toArray();
+
+        $this->assertNull($array['minor_factions']);
+    }
+
+    #[Test]
+    public function itRoundTripsMinorFactionsThroughJson(): void
+    {
+        $settings = DraftSettingsFactory::make([
+            'minorFactions' => true,
+            'minorFactionsMode' => MinorFactionsMode::RANDOM,
+        ]);
+
+        $restored = Settings::fromJson($settings->toArray());
+
+        $this->assertTrue($restored->minorFactions);
+        $this->assertSame(MinorFactionsMode::RANDOM, $restored->minorFactionsMode);
     }
 
     public static function validationCases()
@@ -345,6 +371,13 @@ class SettingsTest extends TestCase
             $this->assertNull($draftSettings->allianceTeamMode);
             $this->assertNull($draftSettings->allianceTeamPosition);
             $this->assertNull($draftSettings->allianceForceDoublePicks);
+        }
+        if (($data['config']['minor_factions'] ?? null) != null) {
+            $this->assertTrue($draftSettings->minorFactions);
+            $this->assertSame($data['config']['minor_factions']['mode'], $draftSettings->minorFactionsMode->value);
+        } else {
+            $this->assertFalse($draftSettings->minorFactions);
+            $this->assertNull($draftSettings->minorFactionsMode);
         }
     }
 }

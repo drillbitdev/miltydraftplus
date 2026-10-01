@@ -177,6 +177,33 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="section">
+                    <div class="content-wrap">
+                        <div class="header">
+                            <h3>Minor Factions Event</h3>
+                            <p class="help">
+                                Each player also receives a minor faction alongside their main faction.
+                            </p>
+                        </div>
+                        <div class="content">
+                            <label for="minor_factions_toggle" class="check">
+                                <input type="checkbox" name="minor_factions_on" id="minor_factions_toggle" value="1" /> Enabled
+                            </label>
+                            <div class="minor_factions_only minor_factions_settings">
+                                <h4>Minor faction assignment</h4>
+                                <label class="check">
+                                    <input type="radio" name="minor_factions_mode" value="draft" checked />
+                                    Draft minor factions
+                                </label>
+                                <label class="check">
+                                    <input type="radio" name="minor_factions_mode" value="random" />
+                                    Randomly assign minor factions
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div class="section">
 
                     <div class="content-wrap">

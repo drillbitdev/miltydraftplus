@@ -8,6 +8,7 @@ use App\Draft\Exceptions\InvalidDraftSettingsException;
 use App\TwilightImperium\AllianceTeamMode;
 use App\TwilightImperium\AllianceTeamPosition;
 use App\TwilightImperium\Edition;
+use App\TwilightImperium\MinorFactionsMode;
 
 /**
  * @todo This class is friggin huge. We could sepatate all the validators into their own class
@@ -49,6 +50,8 @@ class Settings
         public ?AllianceTeamMode $allianceTeamMode = null,
         public ?AllianceTeamPosition $allianceTeamPosition = null,
         public ?bool $allianceForceDoublePicks = null,
+        public bool $minorFactions = false,
+        public ?MinorFactionsMode $minorFactionsMode = null,
     ) {
     }
 
@@ -99,6 +102,9 @@ class Settings
                 'alliance_teams' => $this->allianceTeamMode->value,
                 'alliance_teams_position' => $this->allianceTeamPosition->value,
                 'force_double_picks' => $this->allianceForceDoublePicks,
+            ] : null,
+            'minor_factions' => $this->minorFactions ? [
+                'mode' => $this->minorFactionsMode->value,
             ] : null,
         ];
     }
@@ -214,6 +220,8 @@ class Settings
     public static function fromJson(array $data): self
     {
         $allianceMode = $data['alliance'] != null;
+        // older drafts don't have this key
+        $minorFactions = ($data['minor_factions'] ?? null) != null;
 
         return new self(
             $data['players'],
@@ -238,6 +246,8 @@ class Settings
             $allianceMode ? AllianceTeamMode::from($data['alliance']['alliance_teams']) : null,
             $allianceMode ? AllianceTeamPosition::from($data['alliance']['alliance_teams_position']) : null,
             $allianceMode ? (bool) $data['alliance']['force_double_picks'] : null,
+            $minorFactions,
+            $minorFactions ? MinorFactionsMode::from($data['minor_factions']['mode']) : null,
         );
     }
 
@@ -326,6 +336,8 @@ class Settings
             $this->allianceTeamMode,
             $this->allianceTeamPosition,
             $this->allianceForceDoublePicks,
+            $this->minorFactions,
+            $this->minorFactionsMode,
         );
 
     }

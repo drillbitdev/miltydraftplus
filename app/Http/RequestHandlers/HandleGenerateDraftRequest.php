@@ -15,6 +15,7 @@ use App\Http\RequestHandler;
 use App\TwilightImperium\AllianceTeamMode;
 use App\TwilightImperium\AllianceTeamPosition;
 use App\TwilightImperium\Edition;
+use App\TwilightImperium\MinorFactionsMode;
 
 class HandleGenerateDraftRequest extends RequestHandler
 {
@@ -53,6 +54,7 @@ class HandleGenerateDraftRequest extends RequestHandler
         }
 
         $allianceMode = (bool) $this->request->get('alliance_on', false);
+        $minorFactions = (bool) $this->request->get('minor_factions_on', false);
 
         $customSlices = [];
         if ($this->request->get('custom_slices', '') != '') {
@@ -91,6 +93,8 @@ class HandleGenerateDraftRequest extends RequestHandler
             $allianceMode ? AllianceTeamMode::from($this->request->get('alliance_teams')) : null,
             $allianceMode ? AllianceTeamPosition::from($this->request->get('alliance_teams_position')) : null,
             $allianceMode ? $this->request->get('force_double_picks') == 'on' : null,
+            $minorFactions,
+            $minorFactions ? MinorFactionsMode::from($this->request->get('minor_factions_mode')) : null,
         );
     }
 

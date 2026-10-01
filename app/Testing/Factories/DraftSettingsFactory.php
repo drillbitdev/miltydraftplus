@@ -10,6 +10,7 @@ use App\Draft\Settings;
 use App\TwilightImperium\AllianceTeamMode;
 use App\TwilightImperium\AllianceTeamPosition;
 use App\TwilightImperium\Edition;
+use App\TwilightImperium\MinorFactionsMode;
 use Faker\Factory;
 
 class DraftSettingsFactory
@@ -29,6 +30,7 @@ class DraftSettingsFactory
         $names = $properties['playerNames'] ?? array_map(fn () => $faker->name(), range(1, $numberOfPlayers));
 
         $allianceMode = $properties['allianceMode'] ?? false;
+        $minorFactions = $properties['minorFactions'] ?? false;
 
         return new Settings(
             $names,
@@ -61,6 +63,8 @@ class DraftSettingsFactory
             $allianceMode ? $properties['allianceTeamMode'] ?? AllianceTeamMode::RANDOM : null,
             $allianceMode ? $properties['allianceTeamPosition'] ?? AllianceTeamPosition::OPPOSITES : null,
             $allianceMode ? $properties['allianceForceDoublePicks'] ?? false : null,
+            $minorFactions,
+            $minorFactions ? $properties['minorFactionsMode'] ?? MinorFactionsMode::DRAFT : null,
         );
     }
 }
