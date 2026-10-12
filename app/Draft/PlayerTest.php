@@ -26,6 +26,25 @@ class PlayerTest extends TestCase
         }
     }
 
+    public static function poopNames(): iterable
+    {
+        yield ['Adrian', 'Adrian 💩'];
+        yield ['ado', 'ado 💩'];
+        yield ['ADRO', 'ADRO 💩'];
+        yield ['Adrianna', 'Adrianna'];
+        yield ['Bob', 'Bob'];
+    }
+
+    #[DataProvider('poopNames')]
+    #[Test]
+    public function itAddsAPoopToCertainDisplayNames(string $name, string $expected): void
+    {
+        $player = new Player(PlayerId::fromString('1'), $name);
+
+        $this->assertSame($expected, $player->displayName());
+        $this->assertSame($name, $player->name);
+    }
+
     #[Test]
     public function itChecksIfPlayerHasPickedPosition(): void
     {

@@ -330,6 +330,12 @@ function find_player(id) {
     return draft.draft.players[id];
 }
 
+// keep in sync with Player::displayName()
+function display_name(p) {
+    const poop_names = ['adrian', 'ado', 'adro'];
+    return poop_names.includes(p.name.trim().toLowerCase()) ? p.name + ' 💩' : p.name;
+}
+
 function refreshData() {
     loading(true);
 
@@ -409,11 +415,11 @@ function draft_status() {
 
         $('#player-' + p.id + ' .chosen-' + log_item.category).html(show_value);
         let $btn = $('button[data-category="' + log_item.category + '"][data-value="' + log_item.value + '"]');
-        $('.drafted-by[data-category="' + log_item.category + '"][data-value="' + log_item.value + '"]').html(p.name).show();
+        $('.drafted-by[data-category="' + log_item.category + '"][data-value="' + log_item.value + '"]').html(display_name(p)).show();
         $btn.prop('disabled', true);
         $btn.parents('.option').addClass('picked');
 
-        log += '<p><strong>' + p.name + '</strong> picked <strong>' + show_value + '</strong></p>';
+        log += '<p><strong>' + display_name(p) + '</strong> picked <strong>' + show_value + '</strong></p>';
     }
 
     if (log != '') {
@@ -437,7 +443,7 @@ function draft_status() {
     if (IS_ADMIN) {
         $('button.draft').show();
 
-        $('#current-name').html(current_player.name + "'s");
+        $('#current-name').html(display_name(current_player) + "'s");
     } else {
         if (typeof (me) != 'undefined' && current_player.id == me.id) {
             // IT'S MY TURN!
@@ -445,7 +451,7 @@ function draft_status() {
             $('#current-name').html('your');
         } else {
             $('button.draft').hide();
-            $('#current-name').html(current_player.name + "'s");
+            $('#current-name').html(display_name(current_player) + "'s");
         }
     }
 

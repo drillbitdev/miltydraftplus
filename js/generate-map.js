@@ -389,7 +389,7 @@ function generate_map() {
     for(let pid in draft.draft.players) {
         let p = draft.draft.players[pid];
         if(p.position != null) {
-            speaker_order[p.position] = p.name;
+            speaker_order[p.position] = display_name(p);
         }
     }
 
@@ -457,7 +457,7 @@ function lookup(player_index, tile_index) {
                     }
                 }
 
-                return [tile, p.name];
+                return [tile, display_name(p)];
             }
             else if(p.slice != null) {
                 let tiles = draft.slices[p.slice].tiles;
@@ -469,7 +469,7 @@ function lookup(player_index, tile_index) {
                 }
 
                 // huzzah!
-                return [tiles[tile_index], p.name];
+                return [tiles[tile_index], display_name(p)];
             }
         }
     }

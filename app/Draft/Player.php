@@ -38,6 +38,18 @@ class Player
         );
     }
 
+    /**
+     * The name as shown in the UI; stored name is left untouched.
+     */
+    public function displayName(): string
+    {
+        $poopNames = ['adrian', 'ado', 'adro'];
+
+        return in_array(strtolower(trim($this->name)), $poopNames, true)
+            ? $this->name . ' 💩'
+            : $this->name;
+    }
+
     public static function create(string $name)
     {
         return new self(

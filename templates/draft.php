@@ -66,7 +66,7 @@
                     <div class="players">
                         <?php foreach (array_values($draft->players) as $i => $player) : ?>
                             <div id="player-<?= $player->id ?>" class="player">
-                                <h3><span><?= $i + 1 ?></span> <?= $player->name ?> <?= $player->team ? '<span class="team team_' . $player->team . '">[Team ' . $player->team . ']</span>' : '' ?></h3>
+                                <h3><span><?= $i + 1 ?></span> <?= $player->displayName() ?> <?= $player->team ? '<span class="team team_' . $player->team . '">[Team ' . $player->team . ']</span>' : '' ?></h3>
 
                                 <span class="you" data-id="<?= $player->id ?>">you</span>
                                 <p>
@@ -127,7 +127,7 @@
                                             <?php else : ?>
                                                 <?php foreach ($draft->players as $player) : ?>
                                                     <?php if ($player->pickedMinorFaction == $faction->name) : ?>
-                                                        <p class="assigned-to">Assigned to <?= $player->name ?></p>
+                                                        <p class="assigned-to">Assigned to <?= $player->displayName() ?></p>
                                                     <?php endif; ?>
                                                 <?php endforeach; ?>
                                             <?php endif; ?>
